@@ -1464,6 +1464,47 @@ export interface XlsxReadOptions {
 	ignoreNodes: string[];
 }
 
+/**
+ * Structured warning recorded while reading a malformed, but recoverable, package.
+ */
+export interface ReadWarning {
+	/**
+	 * Fault category: `unrecognised-entry`, `entry-name-case`,
+	 * `missing-part` or `dangling-relationship`.
+	 */
+	code:
+		| 'unrecognised-entry'
+		| 'entry-name-case'
+		| 'missing-part'
+		| 'dangling-relationship';
+	/**
+	 * Human-readable description of the anomaly.
+	 */
+	message: string;
+	/**
+	 * Code-specific locating details (entry name, relationship id, target, ...).
+	 */
+	[detail: string]: unknown;
+}
+
+/**
+ * Collection of tolerated package anomalies produced by a read operation.
+ */
+export interface ReadWarnings {
+	/**
+	 * Number of recorded warnings.
+	 */
+	readonly count: number;
+	/**
+	 * Snapshot copy of the recorded warnings.
+	 */
+	toArray(): ReadWarning[];
+	/**
+	 * Iterate over the recorded warnings.
+	 */
+	[Symbol.iterator](): Iterator<ReadWarning>;
+}
+
 export interface XlsxWriteOptions extends stream.xlsx.WorkbookWriterOptions {
 	/**
 	 * The option passed to JsZip#generateAsync(options)
@@ -1472,6 +1513,13 @@ export interface XlsxWriteOptions extends stream.xlsx.WorkbookWriterOptions {
 }
 
 export interface Xlsx {
+	/**
+	 * Tolerated package anomalies collected during the most recent read.
+	 * Populated after `readFile`, `read` or `load` resolves; an empty
+	 * collection means the package matched the conventional layout.
+	 */
+	readonly readWarnings: ReadWarnings;
+
 	/**
 	 * read from a file
 	 */
